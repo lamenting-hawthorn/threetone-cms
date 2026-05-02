@@ -30,10 +30,9 @@ Set `NEXT_PUBLIC_WEB_URL=http://localhost:3000` in admin's `.env.local` for loca
 
 ## 2. Run the database migrations
 
-Go to the [SQL Editor](https://supabase.com/dashboard/project/hdggjmpphsmgjqdjxvcr/sql) and run each file in order:
+Go to the [SQL Editor](https://supabase.com/dashboard/project/hdggjmpphsmgjqdjxvcr/sql) and run:
 
 1. `supabase/migrations/001_posts.sql`
-2. `supabase/migrations/002_storage.sql`
 
 Or use the Supabase CLI:
 

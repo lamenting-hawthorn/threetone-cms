@@ -63,6 +63,8 @@ export function PostEditor({ post }: Props) {
       mode === 'unpublish' ? 'draft' :
       status
 
+    const { data: { user } } = await supabase.auth.getUser()
+
     const payload = {
       title,
       slug: slug || null,
@@ -75,6 +77,7 @@ export function PostEditor({ post }: Props) {
       seo_description: seoDescription || null,
       status: newStatus,
       published_at: mode === 'publish' ? new Date().toISOString() : post?.published_at ?? null,
+      author_id: isNew ? user?.id ?? null : undefined,
     }
 
     try {
@@ -97,11 +100,35 @@ export function PostEditor({ post }: Props) {
         setStatus(newStatus)
         setSaveMessage(mode === 'publish' ? 'Published!' : mode === 'unpublish' ? 'Unpublished' : mode === 'autosave' ? 'Autosaved' : 'Saved')
       }
+
+      if (mode === 'publish' || mode === 'unpublish') {
+        void revalidateWebApp(slug, post?.slug ?? slug)
+      }
     } catch (err: unknown) {
       setSaveMessage('Error: ' + (err instanceof Error ? err.message : 'Unknown error'))
     } finally {
       setSaving(false)
       setTimeout(() => setSaveMessage(''), 2500)
+    }
+  }
+
+  async function revalidateWebApp(currentSlug: string, previousSlug?: string) {
+    const base = process.env.NEXT_PUBLIC_WEB_URL
+    const secret = process.env.NEXT_PUBLIC_REVALIDATE_SECRET
+    if (!base || !secret) return
+
+    const paths = ['/blog']
+    if (currentSlug) paths.push(`/blog/${currentSlug}`)
+    if (previousSlug && previousSlug !== currentSlug) paths.push(`/blog/${previousSlug}`)
+
+    try {
+      await fetch(`${base}/api/revalidate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret, paths }),
+      })
+    } catch {
+      // Revalidation is best-effort; don't block the editor on failure
     }
   }
 
@@ -131,7 +158,7 @@ export function PostEditor({ post }: Props) {
   }
 
   const webPreviewUrl = process.env.NEXT_PUBLIC_WEB_URL
-    ? `${process.env.NEXT_PUBLIC_WEB_URL}/blog/preview?slug=${slug}&id=${post?.id}`
+    ? `${process.env.NEXT_PUBLIC_WEB_URL}/blog/preview?id=${post?.id}&token=${process.env.NEXT_PUBLIC_PREVIEW_SECRET}`
     : null
 
   return (
