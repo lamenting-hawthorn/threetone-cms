@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import type { Metadata } from 'next'
 import { PostCard } from '@/components/PostCard'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Blog',

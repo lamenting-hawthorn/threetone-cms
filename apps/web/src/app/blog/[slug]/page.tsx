@@ -1,19 +1,14 @@
-import { getPublishedPostBySlug, getPublishedPosts } from '@threetone/db'
+import { getPublishedPostBySlug } from '@threetone/db'
 import { supabase } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PostContent } from '@/components/PostContent'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params: Promise<{ slug: string }>
-}
-
-export async function generateStaticParams() {
-  const posts = await getPublishedPosts(supabase)
-  return posts.map(p => ({ slug: p.slug ?? '' })).filter(p => p.slug)
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
